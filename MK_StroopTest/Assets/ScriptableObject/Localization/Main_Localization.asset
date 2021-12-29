@@ -29,4 +29,22 @@ MonoBehaviour:
   - name: '#black'
     translation: Black
   - name: '#speed'
-    translation: Speed
+    translation: 'Speed:'
+  - name: '#correct'
+    translation: 'Answers Correct:'
+  - name: '#home'
+    translation: Home
+  - name: '#restart'
+    translation: Restart
+  - name: '#pause'
+    translation: Pause Menu
+  - name: '#resume'
+    translation: Resume
+  - name: '#quit'
+    translation: Quit
+  - name: '#main-title'
+    translation: Stroop Test
+  - name: '#start'
+    translation: New Game
+  - name: '#main-author'
+    translation: By Jacob Cooper

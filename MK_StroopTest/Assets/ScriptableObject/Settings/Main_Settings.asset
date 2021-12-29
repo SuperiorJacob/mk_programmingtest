@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Main_Settings
   m_EditorClassIdentifier: 
   localization: {fileID: 11400000, guid: 345062a7e27667c4d868ecc791b25f99, type: 2}
-  mainFont: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-  menuFont: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  pauseKey: 27
+  mainFont: {fileID: 12800000, guid: b13be5f8200f0144ab1a262e2ad14825, type: 3}
   stroopColours:
   - name: '#red'
     color: {r: 0.7924528, g: 0.16820934, b: 0.16820934, a: 1}

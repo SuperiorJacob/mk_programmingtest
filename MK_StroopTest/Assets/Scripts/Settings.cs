@@ -20,12 +20,11 @@ namespace Superior.StroopTest
     {
         public Localization localization;
 
+        public KeyCode pauseKey;
+
         [Header("Fonts"),
             Tooltip("The main font used by everything other then the menu.")]
         public Font mainFont;
-
-        [Tooltip("A font used for most menu items outside of the game.")]
-        public Font menuFont;
 
         public ColorInformation[] stroopColours;
     }
