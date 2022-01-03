@@ -30,6 +30,8 @@ MonoBehaviour:
     translation: Black
   - name: '#speed'
     translation: 'Speed:'
+  - name: '#highscore'
+    translation: Highscore
   - name: '#correct'
     translation: 'Answers Correct:'
   - name: '#home'
@@ -48,3 +50,9 @@ MonoBehaviour:
     translation: New Game
   - name: '#main-author'
     translation: By Jacob Cooper
+  - name: '#new-highscore'
+    translation: NEW HIGHSCORE
+  - name: '#winner'
+    translation: You Passed!
+  - name: '#loser'
+    translation: You Failed.

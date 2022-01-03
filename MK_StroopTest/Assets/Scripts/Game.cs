@@ -6,6 +6,9 @@ using UnityEngine.UI;
 
 namespace Superior.StroopTest
 {
+    /// <summary>
+    /// Simplified data object to lesser file lines.
+    /// </summary>
     [System.Serializable]
     public struct ButtonInfo
     {
@@ -13,7 +16,7 @@ namespace Superior.StroopTest
         public Text text;
     }
 
-    // I would make this a struct for performance, but for dynamic data changing, a class is required.
+    // I would make this a struct for performance, but for dynamic data changing, a class is better.
     public class RoundInfo
     {
         public int index = 0;
@@ -40,12 +43,14 @@ namespace Superior.StroopTest
         [SerializeField] private GameObject _roundManager;
         [SerializeField] private Text _centralText;
         [SerializeField] private Text _speedText;
+        [SerializeField] private Text _highscoreSpeedText;
         [SerializeField] private ButtonInfo[] _roundButtons;
 
         [Header("End Game")]
         [SerializeField] private GameObject _endGame;
         [SerializeField] private Text _speed;
         [SerializeField] private Text _correctText;
+        [SerializeField] private Text _successText;
         [SerializeField] private ButtonInfo _endRestartButton;
         [SerializeField] private ButtonInfo _endHomeButton;
 
@@ -63,6 +68,7 @@ namespace Superior.StroopTest
         private bool _paused = false;
         private float _pauseTime = 0f;
 
+        private HighscoreData _highscore;
         private RoundInfo[] _rounds;
 
         /// <summary>
@@ -122,48 +128,31 @@ namespace Superior.StroopTest
         /// </summary>
         public void ResetGame()
         {
-            _endGame.SetActive(false);
-            _pauseMenu.SetActive(false);
-            _homeMenu.SetActive(false);
-            _homeMenu.SetActive(false);
-            _roundManager.SetActive(true);
-
-            List<Text> texts = new List<Text>() { _centralText, _speedText, _correctText, _speed, _pauseTitle, 
-                _homeButton.text, _restartButton.text, _resumeButton.text, _endRestartButton.text, _endHomeButton.text };
-
-            for (int i = 0; i < _roundButtons.Length; i++)
-                texts.Add(_roundButtons[i].text);
-
-            Utility.SetFonts(settings.mainFont, texts.ToArray());
-
-            _pauseTitle.text = Localization.Instance.GetLanguage("#pause");
-            _homeButton.text.text = Localization.Instance.GetLanguage("#home");
-            _restartButton.text.text = Localization.Instance.GetLanguage("#restart");
-            _resumeButton.text.text = Localization.Instance.GetLanguage("#resume");
-
-            _endRestartButton.text.text = Localization.Instance.GetLanguage("#restart");
-            _endHomeButton.text.text = Localization.Instance.GetLanguage("#home");
-
-            _speedText.text = Localization.Instance.GetLanguage("#speed");
-
             _currentRound = 0;
             _correct = 0;
             _gameStartTimer = -1f;
             _started = false;
             _paused = false;
 
-            _restartButton.button.onClick.RemoveAllListeners();
-            _homeButton.button.onClick.RemoveAllListeners();
-            _resumeButton.button.onClick.RemoveAllListeners();
+            List<Text> texts = new List<Text>() { _centralText, _speedText, _correctText, _speed, _pauseTitle, _highscoreSpeedText, _successText,
+                _homeButton.text, _restartButton.text, _resumeButton.text, _endRestartButton.text, _endHomeButton.text };
 
-            _resumeButton.button.onClick.AddListener(() => Pause(false));
-            _restartButton.button.onClick.AddListener(() => StartGame());
-            _homeButton.button.onClick.AddListener(() => HomeMenu());
+            for (int i = 0; i < _roundButtons.Length; i++)
+                texts.Add(_roundButtons[i].text);
 
-            _endRestartButton.button.onClick.AddListener(() => StartGame());
-            _endHomeButton.button.onClick.AddListener(() => HomeMenu());
+            Utility.SetFonts(settings.mainFont, texts.ToArray());
+            SetupText();
+
+            Utility.SetActive(false, _endGame, _pauseMenu, _homeMenu);
+            _roundManager.SetActive(true);
+
+            Utility.RemoveListeners(_restartButton, _homeButton, _resumeButton);
+            SetupButtons();
         }
 
+        /// <summary>
+        /// Pause/Unpause the game and resume proccessing.
+        /// </summary>
         public void Pause(bool shouldPause)
         {
             _paused = shouldPause;
@@ -185,6 +174,41 @@ namespace Superior.StroopTest
             }
         }
 
+        /// <summary>
+        /// Setup the text languages.
+        /// </summary>
+        public void SetupText()
+        {
+            _pauseTitle.text = Localization.Instance.GetLanguage("#pause");
+            _homeButton.text.text = Localization.Instance.GetLanguage("#home");
+            _restartButton.text.text = Localization.Instance.GetLanguage("#restart");
+            _resumeButton.text.text = Localization.Instance.GetLanguage("#resume");
+
+            _endRestartButton.text.text = Localization.Instance.GetLanguage("#restart");
+            _endHomeButton.text.text = Localization.Instance.GetLanguage("#home");
+
+            _highscoreSpeedText.text = _highscore.speed > 0 ? $"{Localization.Instance.GetLanguage("#highscore")} {_highscore.speed}s" : "";
+            _speedText.text = Localization.Instance.GetLanguage("#speed");
+
+            _successText.text = "";
+        }
+
+        /// <summary>
+        /// Setup the button listeners.
+        /// </summary>
+        public void SetupButtons()
+        {
+            _resumeButton.button.onClick.AddListener(() => Pause(false));
+            _restartButton.button.onClick.AddListener(() => StartGame());
+            _homeButton.button.onClick.AddListener(() => HomeMenu());
+
+            _endRestartButton.button.onClick.AddListener(() => StartGame());
+            _endHomeButton.button.onClick.AddListener(() => HomeMenu());
+        }
+
+        /// <summary>
+        /// Load the home menu.
+        /// </summary>
         public void HomeMenu()
         {
             ResetGame();
@@ -203,13 +227,15 @@ namespace Superior.StroopTest
             _homeTitle.text = Localization.Instance.GetLanguage("#main-title");
             _homeTitleBottom.text = Localization.Instance.GetLanguage("#main-author");
 
-            _homeStart.button.onClick.RemoveAllListeners();
-            _homeQuit.button.onClick.RemoveAllListeners();
+            Utility.RemoveListeners(_homeStart, _homeQuit);
 
             _homeStart.button.onClick.AddListener(() => StartGame());
             _homeQuit.button.onClick.AddListener(() => Application.Quit());
         }
 
+        /// <summary>
+        /// Goes to the next round in queue.
+        /// </summary>
         public void NextRound()
         {
             _currentRound++;
@@ -224,6 +250,9 @@ namespace Superior.StroopTest
             StartRound();
         }
 
+        /// <summary>
+        /// Used to start the current round.
+        /// </summary>
         public void StartRound()
         {
             var round = _rounds[_currentRound];
@@ -243,34 +272,43 @@ namespace Superior.StroopTest
                 button.button.onClick.RemoveAllListeners();
 
                 // Add a win listener at runtime.
-                button.button.onClick.AddListener(() => 
-                {
-                    if (_paused)
-                        return;
-
-                    if (_gameStartTimer == -1f)
-                    {
-                        _started = true;
-                        _gameStartTimer = Time.realtimeSinceStartup;
-                    }
-
-                    float speed = Time.realtimeSinceStartup - startTime;
-
-                    round.won = round.colorInfo.color == option.color;
-
-                    if (round.won)
-                        _correct++;
-
-                    round.speed = speed;
-
-                    NextRound();
-                });
+                button.button.onClick.AddListener(() => ColorClickEvent(round, startTime, option));
             }
 
+            // Setup the central round text.
             _centralText.text = Localization.Instance.GetLanguage(round.colorInfo.name);
             _centralText.color = round.colorInfo.color;
         }
 
+        /// <summary>
+        /// Used when clicking the correct color in a round.
+        /// </summary>
+        public void ColorClickEvent(RoundInfo round, float startTime, ColorInformation option)
+        {
+            if (_paused)
+                return;
+
+            if (_gameStartTimer == -1f)
+            {
+                _started = true;
+                _gameStartTimer = Time.realtimeSinceStartup;
+            }
+
+            float speed = Time.realtimeSinceStartup - startTime;
+
+            round.won = round.colorInfo.color == option.color;
+
+            if (round.won)
+                _correct++;
+
+            round.speed = speed;
+
+            NextRound();
+        }
+
+        /// <summary>
+        /// End game screen, called when the game is over.
+        /// </summary>
         public void EndGame()
         {
             _endGame.gameObject.SetActive(true);
@@ -280,6 +318,24 @@ namespace Superior.StroopTest
 
             _speed.text = _speedText.text;
             _correctText.text = $"{Localization.Instance.GetLanguage("#correct")} {_correct}/{_rounds.Length}";
+
+            float endTime = Time.realtimeSinceStartup - _gameStartTimer;
+            bool won = _correct == _rounds.Length;
+            bool newHighscore = won && endTime < _highscore.speed;
+
+            _successText.text = Localization.Instance.GetLanguage(
+                newHighscore ? "#new-highscore" : (won ? "#winner" : "#loser"));
+
+            // Save the new highscore (if it is a highscore).
+            // The reason we do this at the end of the scope is because it is quite expensive.
+
+            if (newHighscore)
+            {
+                _highscore.correct = _correct;
+                _highscore.speed = endTime;
+
+                _highscore.Save();
+            }
         }
 
         private void Awake()
@@ -300,6 +356,10 @@ namespace Superior.StroopTest
 
             // Setup the settings.
             settings.localization.Setup();
+
+            // Load highscore data
+            _highscore = new HighscoreData();
+            _highscore.Load();
         }
 
         private void Start()
@@ -309,18 +369,17 @@ namespace Superior.StroopTest
 
         private void Update()
         {
+            // Pause menu setup.
             if (Input.GetKeyDown(settings.pauseKey))
                 Pause(!_paused);
 
+            // Fun rainbow title screen effect.
             if (_homeMenu.activeInHierarchy)
-            {
                 _homeTitle.color = Color.HSVToRGB(Mathf.PingPong(Time.time * 0.1f, 1), 1, 1);
-            }
 
-            if (!_started || _paused)
-                return;
-
-            _speedText.text = _gameStartTimer != -1f ? $"{Localization.Instance.GetLanguage("#speed")} {Time.realtimeSinceStartup - _gameStartTimer}s" : "";
+            // Only update speed text when were playing the game and not paused.
+            if (_started && !_paused)
+                _speedText.text = _gameStartTimer != -1f ? $"{Localization.Instance.GetLanguage("#speed")} {Time.realtimeSinceStartup - _gameStartTimer}s" : "";
         }
     }
 }
